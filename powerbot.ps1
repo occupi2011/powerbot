@@ -57,12 +57,9 @@ Function Connect-IRCServer (
                 $m = $text_stream -match '^[:](?<user>[\w]*)[!]([\w]*[@][\w.]*)[ ]PRIVMSG[ ]([+#\w]*)[ ][:][?](?<command>[\w\W]*)$'
                 if($m) {
                     if ($Matches.Count -gt 0) {
-                        Write-Host "Matches the command regex"
-                        Write-Host "Match results:",$Matches.user,$Matches.command
                         $command,$args = $Matches.command -split " "
                         $user = $Matches.user
-                        Write-Host $command
-                        Write-Host $args
+
                         if($command.Contains("test")) {
                                     Write-Host "Matched an actual command"
                                     #$writer.WriteLine("PRIVMSG $channel "+$Matches.user+": Regex match.")
