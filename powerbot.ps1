@@ -87,7 +87,6 @@ Function Connect-IRCServer (
                                     }
                                     Write-Host $r
                                     Send-ChannelMsg -Writer $writer -Message "$r"
-                                    $writer.Flush()
                                     }
                             }
                         }
