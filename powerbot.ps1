@@ -76,13 +76,14 @@ Function Connect-IRCServer (
                                         continue
                                         }
                                     Write-Host "executing: $args"
-                                    $r = Try {
-                                    iex "$args" | Out-String -Stream
+                                    Try {
+                                    $r = iex "$args" | Out-String -Stream
                                     }
                                     Catch {
                                     $ErrorMessage = $_.Exception.Message
                                     $FailedItem = $_.Exception.ItemName
                                     Send-ChannelMsg -Writer $writer -Message "$ErrorMessage"
+                                    continue
                                     }
                                     Write-Host $r
                                     Send-ChannelMsg -Writer $writer -Message "$r"
