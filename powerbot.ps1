@@ -5,9 +5,11 @@ Function Send-ChannelMsg (
     [Parameter(Mandatory=$True)][string]$Message) 
 {
 
-    $Writer.WriteLine("PRIVMSG $channel $Message")
-    $Writer.Flush()
-    Write-Host "--> <$channel> $Message"
+    $Message.Split([Environment]::NewLine) | ForEach {
+        $Writer.WriteLine("PRIVMSG $channel $_")
+        $Writer.Flush()
+        Write-Host "--> <$channel> $_"
+        }
 
 }
 
@@ -83,7 +85,7 @@ Function Connect-IRCServer (
                                     $ErrorMessage = $_.Exception.Message
                                     $FailedItem = $_.Exception.ItemName
                                     Send-ChannelMsg -Writer $writer -Message "$ErrorMessage"
-                                    continue
+                                    break
                                     }
                                     Write-Host $r
                                     Send-ChannelMsg -Writer $writer -Message "$r"
