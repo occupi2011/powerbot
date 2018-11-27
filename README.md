@@ -1,5 +1,5 @@
 # PowerBot
-## A PowerShell-powered IRC Bot
+_A PowerShell-powered IRC Bot_
 
 Requirements:
 * Powershell v6
