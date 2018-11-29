@@ -1,7 +1,8 @@
 $channel = "#occutest"
 $gwriter = ""
-$version = "0.3"
+$version = "0.4"
 $onlineversion = "https://raw.githubusercontent.com/occupi2011/powerbot/master/version.txt"
+$updatefile = "https://raw.githubusercontent.com/occupi2011/powerbot/master/powerbot.ps1"
 
 Function Get-Updates() 
 {
@@ -54,7 +55,12 @@ Function Install-Updates () {
         if ($response -match "[Yy]")
         {
             (New-Object System.Net.WebClient).DownloadFile($updatefile, $updatepath)
-            Start-Process PowerShell -Arg $updatepath
+            Write-Host $updatepath
+            Write-Host $MyInvocation.ScriptName
+            Rename-Item -Path $MyInvocation.ScriptName -NewName ($MyInvocation.ScriptName+".old")
+            Rename-Item -Path $updatepath -NewName $MyInvocation.ScriptName
+            Get-ChildItem
+            #Start-Process pwsh -Arg $updatepath
             exit
         }
         if ($response -match "[Nn]")
