@@ -1,16 +1,90 @@
 $channel = "#occutest"
+$gwriter = ""
+$version = "0.3"
+$onlineversion = "https://raw.githubusercontent.com/occupi2011/powerbot/master/version.txt"
+
+Function Get-Updates() 
+{
+    $updatesavailable = $false
+    $newversion = $null
+
+    try {
+        $newversion = (New-Object System.Net.WebClient).DownloadString($onlineversion).Trim([Environment]::NewLine)
+    }
+    catch {
+        Write-Message $_ "debug"
+    }
+
+    if ($null -ne $newversion -and $version -ne $newversion)
+    {
+        $updatesavailable = $false
+        $current = $version.Split(".")
+        $new = $newversion.Split(".")
+        for($i=0; $i -le ($current.Count -1); $i++)
+        {
+            if([int]$new[$i] -gt [int]$current[$i])
+            {
+                $updatesavailable = $true
+                break
+            }
+        }
+    }
+    return $updatesavailable
+}
+
+Function Install-Updates () {
+    $updatepath = "$($PWD.Path)\powerbot_updated.ps1"
+
+    if(Test-Path -Path $updatepath)
+    {
+        Remove-Item $updatepath
+    }
+
+    if(Get-Updates)
+    {
+        Write-Message "Update available! Would you like to update PowerBot?" "success"
+        $response = Read-Host "`n[Y]es or [N]o?"
+        while (($response -match "[YyNn]") -eq $false)
+        {
+            $response = Read-Host "Simply Y or N please."
+        }
+
+        if ($response -match "[YyNn]")
+        {
+            (New-Object System.Net.WebClient).DownloadFile($updatefile, $updatepath)
+            Start-Process PowerShell -Arg $updatepath
+            exit
+        }
+    }
+}
 
 Function Send-ChannelMsg (
-    [Parameter(Mandatory=$True)]$Writer,
+    [Parameter(Mandatory=$True)][string]$Channel, 
     [Parameter(Mandatory=$True)][string]$Message) 
 {
 
     $Message.Split([Environment]::NewLine) | ForEach {
-        $Writer.WriteLine("PRIVMSG $channel $_")
-        $Writer.Flush()
-        Write-Host "--> <$channel> $_"
+        $gwriter.WriteLine("PRIVMSG $Channel $_")
+        $gwriter.Flush()
+        Write-Host "--> <$Channel> $_"
         }
 
+}
+
+Function Send-IRCPong (
+    [Parameter(Mandatory=$True)][string]$Ping) 
+{
+    $gwriter.WriteLine($Ping.Replace("PING","PONG"))
+    Write-Host "-->",$Ping.Replace("PING","PONG")
+    $gwriter.Flush()
+}
+
+Function Join-IRCChannel (
+    [Parameter(Mandatory=$True)][string]$Channel)
+{
+    $gwriter.WriteLine([string]("JOIN",$Channel))
+    $gwriter.Flush()
+    Write-Host "[+] Joining",$Channel
 }
 
 Function Connect-IRCServer ( 
@@ -26,6 +100,7 @@ Function Connect-IRCServer (
         $TCPClient.Connect($IPEndpoint)
         $stream  = $TCPClient.GetStream()
         $writer = New-Object System.IO.StreamWriter($stream)
+        $gwriter = $writer
         $buffer = New-Object System.Byte[] 1024
         $encoding = New-Object System.Text.ASCIIEncoding
         
@@ -44,14 +119,10 @@ Function Connect-IRCServer (
                 Write-Host -n ($encoding.GetString($buffer, 0, $read))
                 $text_stream = $encoding.GetString($buffer, 0, $read)
                 If ($text_stream.StartsWith("PING")) {
-                    $writer.WriteLine($text_stream.Replace("PING","PONG"))
-                    Write-Host "-->",$text_stream.Replace("PING","PONG")
-                    $writer.Flush()
+                    Send-IRCPong -Ping $text_stream
                     }
                 If ($text_stream.Contains("MODE PowerBot :+iwx")) {
-                    $writer.WriteLine([string]("JOIN",$channel))
-                    $writer.Flush()
-                    Write-Host "--> Joining",$channel
+                    Join-IRCChannel -Channel $channel
                     }
                 
                 $m = $text_stream -match '^[:](?<user>[\w]*)[!]([\w]*[@][\w.]*)[ ]PRIVMSG[ ]([+#\w]*)[ ][:][?](?<command>[\w\W]*)$'
@@ -62,30 +133,40 @@ Function Connect-IRCServer (
 
                         if($command.Contains("test")) {
                                     Write-Host "Matched an actual command"
-                                    #$writer.WriteLine("PRIVMSG $channel "+$Matches.user+": Regex match.")
-                                    Send-ChannelMsg -Writer $writer -Message "$user`: Regex match."
-                                    #$writer.Flush()
+                                    Send-ChannelMsg -Channel $channel -Message "$user`: Regex match."
                                 }
                         if($command.Contains("quit")) {
                                     return
                                 }
+                        if($command.Contains("reload")) {
+                            CurrentScriptPath = $MyInvocation.ScriptName
+                            &$CurrentScriptPath
+                            exit
+                        }
                         if($command.Contains("cmd")) {
                                     if(!$args) {
-                                        Send-ChannelMsg -Writer $writer -Message "No powershell command specified."
-                                        continue
+                                        Send-ChannelMsg -Channel $channel -Message "No powershell command specified."
+                                        break
                                         }
+                                    if($args.Contains("invoke-expression") -or $args.Contains("iex") -or $args.Contains("exit")) {
+                                        Send-ChannelMsg -Channel $channel -Message "No."
+                                        break
+                                    }
                                     Write-Host "executing: $args"
                                     Try {
-                                    $r = iex "$args" | Out-String -Stream
+                                    $r = Invoke-Expression "$args" | Out-String -Stream
                                     }
                                     Catch {
                                     $ErrorMessage = $_.Exception.Message
                                     $FailedItem = $_.Exception.ItemName
-                                    Send-ChannelMsg -Writer $writer -Message "$ErrorMessage"
+                                    Send-ChannelMsg -Channel $channel -Message "$ErrorMessage, $FailedItem"
                                     break
                                     }
+                                    IF([string]::IsNullOrEmpty($r)) {            
+                                        $r = "No printable string returned."
+                                    }
                                     Write-Host $r
-                                    Send-ChannelMsg -Writer $writer -Message "$r"
+                                    Send-ChannelMsg -Channel $channel -Message "$r"
                                     }
                             }
                         }
@@ -100,5 +181,6 @@ Function Connect-IRCServer (
     }
 }
 
+Install-Updates
 Write-Host "Connecting to IRC server..."
 Connect-IRCServer -Hostname irc.0x00sec.org -Port 6667
