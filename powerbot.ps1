@@ -10,9 +10,10 @@ Function Get-Updates()
 
     try {
         $newversion = (New-Object System.Net.WebClient).DownloadString($onlineversion).Trim([Environment]::NewLine)
+        Write-Host $newversion
     }
     catch {
-        Write-Message $_ "debug"
+        Write-Host $_
     }
 
     if ($null -ne $newversion -and $version -ne $newversion)
@@ -42,7 +43,7 @@ Function Install-Updates () {
 
     if(Get-Updates)
     {
-        Write-Message "Update available! Would you like to update PowerBot?" "success"
+        Write-Host "Update available! Would you like to update PowerBot?"
         $response = Read-Host "`n[Y]es or [N]o?"
         while (($response -match "[YyNn]") -eq $false)
         {
