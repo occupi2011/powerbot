@@ -65,7 +65,7 @@ Function Install-Updates () {
             Rename-Item -Path $MyInvocation.ScriptName -NewName ($MyInvocation.ScriptName+".old")
             Rename-Item -Path $updatepath -NewName $MyInvocation.ScriptName
             Write-Host "Update Successful! Please run powerbot.ps1 again."
-            #Start-Process pwsh -Arg $updatepath
+            Write-Host "Exiting..."
             exit
         }
         if ($response -match "[Nn]")
