@@ -10,7 +10,6 @@ Function Get-Updates()
 
     try {
         $newversion = (New-Object System.Net.WebClient).DownloadString($onlineversion).Trim([Environment]::NewLine)
-        Write-Host $newversion
     }
     catch {
         Write-Host $_
@@ -26,6 +25,8 @@ Function Get-Updates()
             if([int]$new[$i] -gt [int]$current[$i])
             {
                 $updatesavailable = $true
+                Write-Host ("{0,-24}{1,-20}" -f "Current Version:", $version)
+                Write-Host ("{0,-24}{1,-20}" -f "New Version:", $newversion)
                 break
             }
         }
@@ -50,11 +51,16 @@ Function Install-Updates () {
             $response = Read-Host "Simply Y or N please."
         }
 
-        if ($response -match "[YyNn]")
+        if ($response -match "[Yy]")
         {
             (New-Object System.Net.WebClient).DownloadFile($updatefile, $updatepath)
             Start-Process PowerShell -Arg $updatepath
             exit
+        }
+        if ($response -match "[Nn]")
+        {
+            Write-Host "UPDATE PROCESS ABORTED BY USER"
+            break
         }
     }
 }
