@@ -1,6 +1,6 @@
 $channel = "#occutest"
 $gwriter = ""
-$version = "0.4"
+$version = "0.3"
 $onlineversion = "https://raw.githubusercontent.com/occupi2011/powerbot/master/version.txt"
 $updatefile = "https://raw.githubusercontent.com/occupi2011/powerbot/master/powerbot.ps1"
 
@@ -57,9 +57,14 @@ Function Install-Updates () {
             (New-Object System.Net.WebClient).DownloadFile($updatefile, $updatepath)
             Write-Host $updatepath
             Write-Host $MyInvocation.ScriptName
+            if((Get-FileHash -Path $updatepath).Hash -eq (Get-FileHash -Path $MyInvocation.ScriptName).Hash)
+            {
+                Write-Host "New script has same hash as current script"
+                break
+            }
             Rename-Item -Path $MyInvocation.ScriptName -NewName ($MyInvocation.ScriptName+".old")
             Rename-Item -Path $updatepath -NewName $MyInvocation.ScriptName
-            Get-ChildItem
+            Write-Host "Update Successful! Please run powerbot.ps1 again."
             #Start-Process pwsh -Arg $updatepath
             exit
         }
