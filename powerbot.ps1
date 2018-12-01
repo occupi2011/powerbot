@@ -3,6 +3,7 @@ $gwriter = ""
 $version = "0.3"
 $onlineversion = "https://raw.githubusercontent.com/occupi2011/powerbot/master/version.txt"
 $updatefile = "https://raw.githubusercontent.com/occupi2011/powerbot/master/powerbot.ps1"
+$shortscriptname = split-path $MyInvocation.PSCommandPath -Leaf
 
 Function Get-Updates() 
 {
@@ -64,7 +65,7 @@ Function Install-Updates () {
             }
             Rename-Item -Path $MyInvocation.ScriptName -NewName ($MyInvocation.ScriptName+".old")
             Rename-Item -Path $updatepath -NewName $MyInvocation.ScriptName
-            Write-Host "Update Successful! Please run powerbot.ps1 again."
+            Write-Host "Update Successful! Please run $shortscriptname again."
             Write-Host "Exiting..."
             exit
         }
