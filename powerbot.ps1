@@ -1,6 +1,6 @@
 $channel = "#occutest"
 $gwriter = ""
-$version = "0.3"
+$version = "0.4"
 $onlineversion = "https://raw.githubusercontent.com/occupi2011/powerbot/master/version.txt"
 $updatefile = "https://raw.githubusercontent.com/occupi2011/powerbot/master/powerbot.ps1"
 
