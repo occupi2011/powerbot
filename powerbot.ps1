@@ -58,6 +58,7 @@ Function Install-Updates () {
             if((Get-FileHash -Path $updatepath).Hash -eq (Get-FileHash -Path $MyInvocation.ScriptName).Hash)
             {
                 Write-Host "New script has same hash as current script. No update necessary."
+                Write-Host "Exiting..."
                 break
             }
             Rename-Item -Path $MyInvocation.ScriptName -NewName ($MyInvocation.ScriptName+".old")
