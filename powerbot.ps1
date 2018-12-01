@@ -1,8 +1,9 @@
 $channel = "#occutest"
-$gwriter = ""
+$gwriter = $null
 $version = "0.4"
 $onlineversion = "https://raw.githubusercontent.com/occupi2011/powerbot/master/version.txt"
 $updatefile = "https://raw.githubusercontent.com/occupi2011/powerbot/master/powerbot.ps1"
+$nickname = "PowerBot"
 
 Function Get-Updates() 
 {
@@ -131,7 +132,7 @@ Function Connect-IRCServer (
         
         $writer.WriteLine("USER powershell 8 x :powerbot")
         $writer.Flush()
-        $writer.WriteLine("NICK PowerBot")
+        $writer.WriteLine("NICK $nickname")
         $writer.Flush()
        
         while($True) {
