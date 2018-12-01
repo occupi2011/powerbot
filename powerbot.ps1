@@ -61,6 +61,10 @@ Function Install-Updates () {
                 Write-Host "Exiting..."
                 break
             }
+            if(Test-Path -Path $MyInvocation.ScriptName+".old") {
+                Remove-Item ($MyInvocation.ScriptName+".old")
+                Write-Host "[-] Deleting .old backup..."
+            }
             Rename-Item -Path $MyInvocation.ScriptName -NewName ($MyInvocation.ScriptName+".old")
             Rename-Item -Path $updatepath -NewName $MyInvocation.ScriptName
             $shortscriptname = split-path $MyInvocation.PSCommandPath -Leaf
